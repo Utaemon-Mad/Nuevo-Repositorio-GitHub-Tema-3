@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Fichaje Oficina{% endblock %}</title>
+<style>
+  /* ── Tokens ── */
+  :root {
+    --ink:      #0f1117;
+    --surface:  #f7f8fc;
+    --card:     #ffffff;
+    --border:   #e2e5ef;
+    --accent:   #2563eb;
+    --accent-h: #1d4ed8;
+    --green:    #16a34a;
+    --green-bg: #dcfce7;
+    --red:      #dc2626;
+    --red-bg:   #fee2e2;
+    --muted:    #6b7280;
+    --radius:   10px;
+    --shadow:   0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+  }
+
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Nav ── */
+  nav {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    height: 56px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand {
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -.02em;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .nav-brand .dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .nav-links { display: flex; gap: .25rem; margin-left: auto; }
+  .nav-links a {
+    padding: .4rem .8rem;
+    border-radius: 6px;
+    font-size: .875rem;
+    color: var(--muted);
+    font-weight: 500;
+    transition: background .15s, color .15s;
+  }
+  .nav-links a:hover, .nav-links a.active {
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* ── Page header ── */
+  .page-header { margin-bottom: 1.75rem; }
+  .page-header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.03em; }
+  .page-header p  { color: var(--muted); font-size: .9rem; margin-top: .25rem; }
+
+  /* ── Flash messages ── */
+  .flash {
+    padding: .75rem 1rem;
+    border-radius: var(--radius);
+    font-size: .875rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+    border: 1px solid transparent;
+  }
+  .flash.success { background: var(--green-bg); color: var(--green); border-color: #bbf7d0; }
+  .flash.error   { background: var(--red-bg);   color: var(--red);   border-color: #fecaca; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .5rem 1rem;
+    border-radius: 6px;
+    font-size: .875rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background .15s, transform .1s;
+    text-decoration: none;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-h); text-decoration: none; color: #fff; }
+  .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+  .btn-ghost:hover { background: var(--surface); text-decoration: none; color: var(--ink); }
+  .btn-danger { background: var(--red-bg); color: var(--red); border-color: #fecaca; }
+  .btn-danger:hover { background: #fecaca; text-decoration: none; }
+  .btn-sm { padding: .3rem .65rem; font-size: .8rem; }
+
+  /* ── Badge status ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .2rem .6rem;
+    border-radius: 99px;
+    font-size: .78rem;
+    font-weight: 600;
+  }
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .badge-dentro { background: var(--green-bg); color: var(--green); }
+  .badge-dentro::before { background: var(--green); }
+  .badge-fuera  { background: #f3f4f6; color: var(--muted); }
+  .badge-fuera::before  { background: #9ca3af; }
+
+  /* ── Form ── */
+  .form-group { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1rem; }
+  .form-group label { font-size: .8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .form-group input, .form-group select {
+    padding: .55rem .75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: .9rem;
+    color: var(--ink);
+    background: var(--surface);
+    transition: border-color .15s, box-shadow .15s;
+    outline: none;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    background: #fff;
+  }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: .75rem 1rem;
+    font-size: .875rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface); }
+
+  /* ── PIN modal ── */
+  .overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 320px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    text-align: center;
+  }
+  .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: .25rem; }
+  .modal p  { font-size: .85rem; color: var(--muted); margin-bottom: 1.25rem; }
+  .pin-display {
+    font-size: 2rem;
+    letter-spacing: .3em;
+    font-family: monospace;
+    height: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--ink);
+  }
+  .pin-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .5rem;
+    margin-bottom: 1rem;
+  }
+  .pin-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: .85rem;
+    cursor: pointer;
+    transition: background .12s, transform .1s;
+  }
+  .pin-btn:hover { background: #e9eaf0; }
+  .pin-btn:active { transform: scale(.94); }
+  .pin-btn.del { color: var(--muted); font-size: .9rem; }
+  .modal-actions { display: flex; gap: .5rem; justify-content: center; }
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand"><span class="dot"></span> Fichaje Oficina</span>
+  <div class="nav-links">
+    <a href="{{ url_for('index') }}"     class="{{ 'active' if request.endpoint == 'index' }}">Fichar</a>
+    <a href="{{ url_for('historial') }}" class="{{ 'active' if request.endpoint == 'historial' }}">Historial</a>
+    <a href="{{ url_for('empleados') }}" class="{{ 'active' if request.endpoint == 'empleados' }}">Empleados</a>
+  </div>
+</nav>
+
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

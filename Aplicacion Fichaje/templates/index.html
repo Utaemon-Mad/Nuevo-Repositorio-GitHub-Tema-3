@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Fichar — Oficina{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Control de acceso</h1>
+  <p>Selecciona tu nombre e introduce tu PIN para registrar entrada o salida.</p>
+</div>
+
+<!-- Stats rápidas -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.75rem;">
+  {% set dentro = empleados | selectattr('estado','eq','dentro') | list %}
+  {% set fuera  = empleados | selectattr('estado','eq','fuera')  | list %}
+  <div class="card" style="padding:1.25rem;">
+    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem;">En oficina ahora</div>
+    <div style="font-size:2rem;font-weight:800;color:var(--green);">{{ dentro|length }}</div>
+    <div style="font-size:.8rem;color:var(--muted);">de {{ empleados|length }} empleados</div>
+  </div>
+  <div class="card" style="padding:1.25rem;">
+    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem;">Fuera</div>
+    <div style="font-size:2rem;font-weight:800;color:var(--muted);">{{ fuera|length }}</div>
+    <div style="font-size:.8rem;color:var(--muted);">empleados</div>
+  </div>
+  <div class="card" style="padding:1.25rem;">
+    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem;">Fecha y hora</div>
+    <div style="font-size:1.1rem;font-weight:700;" id="reloj">--:--:--</div>
+    <div style="font-size:.8rem;color:var(--muted);" id="fecha">--</div>
+  </div>
+</div>
+
+<!-- Tarjetas de empleados -->
+<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem;">
+  {% for emp in empleados %}
+  <button
+    class="card"
+    onclick="abrirModal({{ emp.id }}, '{{ emp.nombre }} {{ emp.apellidos }}', '{{ emp.estado }}')"
+    style="text-align:left; padding:1.25rem; cursor:pointer; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); width:100%; transition:box-shadow .15s, transform .1s;"
+    onmouseenter="this.style.boxShadow='0 4px 20px rgba(0,0,0,.12)'; this.style.transform='translateY(-2px)'"
+    onmouseleave="this.style.boxShadow=''; this.style.transform=''"
+  >
+    <!-- Avatar -->
+    <div style="width:44px;height:44px;border-radius:50%;background:{{ '#dcfce7' if emp.estado=='dentro' else '#f3f4f6' }};display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:{{ 'var(--green)' if emp.estado=='dentro' else 'var(--muted)' }};margin-bottom:.85rem;">
+      {{ emp.nombre[0] }}{{ emp.apellidos[0] }}
+    </div>
+    <div style="font-weight:700;font-size:.95rem;margin-bottom:.2rem;">{{ emp.nombre }}</div>
+    <div style="font-size:.8rem;color:var(--muted);margin-bottom:.7rem;">{{ emp.apellidos }}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span class="badge badge-{{ emp.estado }}">{{ emp.estado }}</span>
+      <span style="font-size:.78rem;color:var(--muted);">{{ emp.horas_hoy }}</span>
+    </div>
+  </button>
+  {% endfor %}
+</div>
+
+<!-- Modal de PIN -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal">
+    <h2 id="modal-nombre">Empleado</h2>
+    <p id="modal-accion">Registrar entrada</p>
+    <div class="pin-display" id="pin-display">····</div>
+    <div class="pin-grid">
+      {% for n in ['1','2','3','4','5','6','7','8','9','⌫','0','✓'] %}
+      <button class="pin-btn {{ 'del' if n == '⌫' }}" onclick="pulsarPin('{{ n }}')">{{ n }}</button>
+      {% endfor %}
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Formulario oculto para enviar el fichaje -->
+<form id="fichar-form" method="POST" action="{{ url_for('fichar') }}" style="display:none;">
+  <input type="hidden" name="empleado_id" id="form-emp-id">
+  <input type="hidden" name="pin"         id="form-pin">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Reloj
+  function tick() {
+    const now = new Date();
+    document.getElementById('reloj').textContent =
+      now.toLocaleTimeString('es-ES');
+    document.getElementById('fecha').textContent =
+      now.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+  }
+  tick(); setInterval(tick, 1000);
+
+  // PIN modal
+  let empId = null, pin = '';
+
+  function abrirModal(id, nombre, estado) {
+    empId = id; pin = '';
+    document.getElementById('modal-nombre').textContent  = nombre;
+    document.getElementById('modal-accion').textContent  =
+      estado === 'dentro' ? '👋 Registrar salida' : '✅ Registrar entrada';
+    actualizarDisplay();
+    document.getElementById('overlay').classList.add('open');
+  }
+
+  function cerrarModal() {
+    document.getElementById('overlay').classList.remove('open');
+    pin = '';
+  }
+
+  function actualizarDisplay() {
+    const d = document.getElementById('pin-display');
+    d.textContent = pin.length ? '●'.repeat(pin.length) : '····';
+    d.style.color = pin.length ? 'var(--ink)' : '#d1d5db';
+  }
+
+  function pulsarPin(v) {
+    if (v === '⌫') {
+      pin = pin.slice(0, -1);
+      actualizarDisplay();
+      return;
+    }
+    if (v === '✓') {
+      enviar(); return;
+    }
+    if (pin.length >= 6) return;
+    pin += v;
+    actualizarDisplay();
+    if (pin.length >= 4) {
+      // Auto-envío tras 4 dígitos (opcional, lo dejamos en 4+✓)
+    }
+  }
+
+  function enviar() {
+    if (!pin) return;
+    document.getElementById('form-emp-id').value = empId;
+    document.getElementById('form-pin').value    = pin;
+    document.getElementById('fichar-form').submit();
+  }
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') cerrarModal();
+    if (document.getElementById('overlay').classList.contains('open')) {
+      if (e.key >= '0' && e.key <= '9') pulsarPin(e.key);
+      if (e.key === 'Backspace') pulsarPin('⌫');
+      if (e.key === 'Enter') enviar();
+    }
+  });
+</script>
+{% endblock %}

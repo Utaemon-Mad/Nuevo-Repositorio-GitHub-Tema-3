@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Empleados — Fichaje{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Gestión de empleados</h1>
+  <p>Añade, activa o desactiva empleados del sistema.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start;">
+
+  <!-- Tabla de empleados -->
+  <div class="card" style="overflow:hidden;">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Estado</th>
+          <th>Alta</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in empleados %}
+        <tr>
+          <td>
+            <div style="font-weight:600;">{{ e.nombre }} {{ e.apellidos }}</div>
+            <div style="font-size:.78rem;color:var(--muted);">PIN: {{ '●' * e.pin|length }}</div>
+          </td>
+          <td style="font-size:.82rem;color:var(--muted);">{{ e.email }}</td>
+          <td>
+            {% if e.activo %}
+              <span class="badge badge-dentro">Activo</span>
+            {% else %}
+              <span class="badge badge-fuera">Inactivo</span>
+            {% endif %}
+          </td>
+          <td style="font-size:.78rem;color:var(--muted);">{{ e.creado_en[:10] }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('toggle_empleado', emp_id=e.id) }}">
+              <button
+                class="btn btn-sm {{ 'btn-danger' if e.activo else 'btn-ghost' }}"
+                onclick="return confirm('¿Confirmas el cambio de estado?')"
+              >
+                {{ 'Desactivar' if e.activo else 'Activar' }}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Sin empleados registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Formulario alta -->
+  <div class="card" style="padding:1.5rem;">
+    <div style="font-weight:700;font-size:.95rem;margin-bottom:1.25rem;">Añadir empleado</div>
+    <form method="POST" action="{{ url_for('nuevo_empleado') }}">
+      <div class="form-group">
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" name="nombre" placeholder="María" required>
+      </div>
+      <div class="form-group">
+        <label for="apellidos">Apellidos</label>
+        <input type="text" id="apellidos" name="apellidos" placeholder="López García" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="maria@empresa.com" required>
+      </div>
+      <div class="form-group">
+        <label for="pin">PIN (4-6 dígitos)</label>
+        <input
+          type="password"
+          id="pin"
+          name="pin"
+          placeholder="••••"
+          minlength="4"
+          maxlength="6"
+          pattern="\d{4,6}"
+          title="Solo números, 4 a 6 dígitos"
+          required
+        >
+      </div>
+      <button class="btn btn-primary" type="submit" style="width:100%;justify-content:center;">
+        Crear empleado
+      </button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

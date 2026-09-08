@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Historial — Fichaje{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
+  <div>
+    <h1>Historial de fichajes</h1>
+    <p>Últimos 200 registros de entrada y salida.</p>
+  </div>
+  <input
+    type="search"
+    id="buscador"
+    placeholder="Buscar empleado…"
+    style="padding:.5rem .85rem;border:1px solid var(--border);border-radius:6px;font-size:.875rem;width:200px;outline:none;"
+    oninput="filtrar()"
+  >
+</div>
+
+<div class="card" style="overflow:hidden;">
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Empleado</th>
+        <th>Tipo</th>
+        <th>Fecha y hora</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in fichajes %}
+      <tr>
+        <td style="color:var(--muted);font-variant-numeric:tabular-nums;">{{ f.id }}</td>
+        <td style="font-weight:600;">{{ f.nombre }} {{ f.apellidos }}</td>
+        <td>
+          {% if f.tipo == 'entrada' %}
+            <span class="badge badge-dentro">↓ Entrada</span>
+          {% else %}
+            <span class="badge badge-fuera">↑ Salida</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--muted);font-variant-numeric:tabular-nums;font-size:.82rem;">
+          {{ f.timestamp }}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted);">Sin registros aún.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filtrar() {
+  const q = document.getElementById('buscador').value.toLowerCase();
+  document.querySelectorAll('#tabla tbody tr').forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}
